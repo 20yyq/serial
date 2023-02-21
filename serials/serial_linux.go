@@ -1,0 +1,170 @@
+//go:build linux
+// +build linux
+// @@
+// @ Author       : Eacher
+// @ Date         : 2022-11-28 09:04:47
+// @ LastEditTime : 2023-02-21 15:16:12
+// @ LastEditors  : Eacher
+// @ --------------------------------------------------------------------------------<
+// @ Description  : linux 串口
+// @ --------------------------------------------------------------------------------<
+// @ FilePath     : /goserial/serials/serial_linux.go
+// @@
+package serials
+
+import (
+	"os"
+	"fmt"
+	"syscall"
+	"unsafe"
+)
+
+const (
+	MIN_TIME 	= 0x01
+	MAX_TIME 	= 0xFF
+
+	TCFLSH 		= 0x540B
+)
+
+type port struct {
+	c 		Config
+	f     	*os.File
+	t 		*syscall.Termios
+}
+
+// 创建一个可用的串口
+func New(name string, c Config) (Serial, error) {
+	p := &port{t: &syscall.Termios{Iflag: syscall.IGNPAR}}
+	var err error
+	if p.f, err = os.OpenFile(name, syscall.O_RDWR|syscall.O_NOCTTY|syscall.O_NONBLOCK, 0666); err != nil {
+		return nil, fmt.Errorf("serial new Error: %s", err.Error())
+	}
+	if err = p.SetConfig(c); err != nil {
+		return nil, fmt.Errorf("serial new Error: %s", err.Error())
+	}
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, p.f.Fd(), uintptr(syscall.TCSETS), uintptr(unsafe.Pointer(p.t))); errno != 0 {
+		p.f.Close()
+		p.t, p, err = nil, nil, fmt.Errorf("serial restart Error")
+	}
+	return p, err
+}
+
+// 配置端口
+func (p *port) SetConfig(c Config) error {
+	// 初始化控制模式标志
+	p.t.Cflag = 0x00|syscall.CREAD|syscall.CLOCAL
+
+	// 设置波特率
+	bauds := map[uint32]uint32{
+		50: syscall.B50, 75: syscall.B75, 110: syscall.B110, 134: syscall.B134, 150: syscall.B150, 200: syscall.B200,
+		300: syscall.B300, 600: syscall.B600, 1200: syscall.B1200, 1800: syscall.B1800, 2400: syscall.B2400,
+		4800: syscall.B4800, 9600: syscall.B9600, 19200: syscall.B19200, 38400: syscall.B38400, 57600: syscall.B57600,
+		115200: syscall.B115200, 230400: syscall.B230400, 460800: syscall.B460800, 500000: syscall.B500000,
+		576000: syscall.B576000, 921600: syscall.B921600, 1000000: syscall.B1000000, 1152000: syscall.B1152000,
+		1500000: syscall.B1500000, 2000000: syscall.B2000000, 2500000: syscall.B2500000, 3000000: syscall.B3000000,
+		3500000: syscall.B3500000, 4000000: syscall.B4000000,
+	}
+	baud, ok := bauds[c.Baud]
+	if !ok {
+		return fmt.Errorf("unrecognized baud rate")
+	}
+	p.t.Ispeed, p.t.Ospeed = baud, baud
+
+	// 设置数据位
+	switch c.Size {
+	case SIZE0:
+		fallthrough
+	case SIZE8:
+		p.t.Cflag |= syscall.CS8
+	case SIZE5:
+		p.t.Cflag |= syscall.CS5
+	case SIZE6:
+		p.t.Cflag |= syscall.CS6
+	case SIZE7:
+		p.t.Cflag |= syscall.CS7
+	default:
+		return fmt.Errorf("unsupported serial data size")
+	}
+
+	// 设置停止位
+	switch c.StopBits {
+	case STOP0:
+	case STOP1:
+	case STOP2:
+		p.t.Cflag |= syscall.CSTOPB
+	default:
+		return fmt.Errorf("unsupported stop bit setting")
+	}
+
+	// 设置校验位
+	switch c.Parity {
+	case PARITY_ZERO:
+	case PARITY_NONE:
+	case PARITY_ODD:
+		p.t.Cflag |= syscall.PARENB
+		p.t.Cflag |= syscall.PARODD
+	case PARITY_EVEN:
+		p.t.Cflag |= syscall.PARENB
+	default:
+		return fmt.Errorf("unsupported parity setting")
+	}
+
+	// 最小读取字符数、两个字符间超时设置
+	ms := c.ReadTime.Milliseconds()/100
+	if ms < MIN_TIME {
+		ms = MIN_TIME
+	} else if ms > MAX_TIME {
+		ms = MAX_TIME
+	}
+	p.t.Cc[syscall.VMIN], p.t.Cc[syscall.VTIME] = c.MinByte, uint8(ms)
+	return nil
+}
+
+func (p *port) Read(b []byte) (n int, err error) {
+	if n, err = p.f.Read(b); err != nil {
+		return 0, fmt.Errorf("serial read Error: %s", err.Error())
+	}
+	return n, nil
+}
+
+func (p *port) Write(b []byte) (n int, err error) {
+	if n, err = p.f.Write(b); err != nil {
+		return 0, fmt.Errorf("serial write Error: %s", err.Error())
+	}
+	return n, nil
+}
+
+func (p *port) InFlush() error {
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, p.f.Fd(), uintptr(TCFLSH), uintptr(syscall.TCIFLUSH)); errno != 0 {
+		return fmt.Errorf("serial InFlush Error")
+	}
+	return nil
+}
+
+func (p *port) OutFlush() error {
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, p.f.Fd(), uintptr(TCFLSH), uintptr(syscall.TCOFLUSH)); errno != 0 {
+		return fmt.Errorf("serial InFlush Error")
+	}
+	return nil
+}
+
+func (p *port) Close() (err error) {
+	if err = p.f.Close(); err != nil {
+		switch er := err.(type) {
+		case *os.PathError:
+			if er.Err.Error() == os.ErrClosed.Error() {
+				return nil
+			}
+		default:
+		}
+		return fmt.Errorf("serial close Error: %s", err.Error())
+	}
+	return nil
+}
+
+func (p *port) RestStart() error {
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, p.f.Fd(), uintptr(syscall.TCSETS), uintptr(unsafe.Pointer(p.t))); errno != 0 {
+		return fmt.Errorf("serial restart Error")
+	}
+	return nil
+}
