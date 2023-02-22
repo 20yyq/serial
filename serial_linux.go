@@ -3,7 +3,7 @@
 // @@
 // @ Author       : Eacher
 // @ Date         : 2022-11-28 09:04:47
-// @ LastEditTime : 2023-02-22 08:19:14
+// @ LastEditTime : 2023-02-22 08:51:48
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : linux 串口
@@ -121,7 +121,9 @@ func (p *port) SetConfig(c Config) error {
 	 *  当有VMIN个字符可读或两字符间的时间间隔超进VTIME个0.1秒时,Read方法返回
 	**/
 	ms := c.ReadTime.Milliseconds()/100
-	if ms < MIN_TIME {
+	if c.ReadTime == 0 {
+		ms = 0
+	} else if ms < MIN_TIME {
 		ms = MIN_TIME
 	} else if ms > MAX_TIME {
 		ms = MAX_TIME
