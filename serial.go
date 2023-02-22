@@ -1,14 +1,14 @@
 // @@
 // @ Author       : Eacher
 // @ Date         : 2023-02-20 13:45:45
-// @ LastEditTime : 2023-02-21 14:42:33
+// @ LastEditTime : 2023-02-22 08:13:09
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : 
 // @ --------------------------------------------------------------------------------<
-// @ FilePath     : /goserial/serials/serial.go
+// @ FilePath     : /serial/serial.go
 // @@
-package serials
+package serial
 
 import (
 	"time"

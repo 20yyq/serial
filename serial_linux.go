@@ -3,14 +3,14 @@
 // @@
 // @ Author       : Eacher
 // @ Date         : 2022-11-28 09:04:47
-// @ LastEditTime : 2023-02-21 15:16:12
+// @ LastEditTime : 2023-02-22 08:19:14
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : linux 串口
 // @ --------------------------------------------------------------------------------<
-// @ FilePath     : /goserial/serials/serial_linux.go
+// @ FilePath     : /serial/serial_linux.go
 // @@
-package serials
+package serial
 
 import (
 	"os"
@@ -109,7 +109,17 @@ func (p *port) SetConfig(c Config) error {
 		return fmt.Errorf("unsupported parity setting")
 	}
 
-	// 最小读取字符数、两个字符间超时设置
+	/**	VTIME和VMIN值,这两个值只用于非标准模式,两者结合共同控制对输入的读取方式,还能控制在一个程序试图与一个终端关联的文件描述符时将发生的情况
+	 *  
+	 *  VMIN = 0, VTIME = 0时:Read方法立即返回,如果有待处理的字符,它们就会被返回,如果没有,Read方法调用返回0,且不读取任何字符
+	 *  
+	 *  VMIN = 0, VTIME > 0时:有字符处理或经过VTIME个0.1秒后返回
+	 *  
+	 *  VMIN > 0, VTIME = 0时:Read方法一直等待,直到有VMIN个字符可以读取,返回值是字符的数量.到达文件尾时返回0
+	 *  
+	 *  VMIN > 0, VTIME > 0时:Read方法调用时,它会等待接收一个字符.在接收到第一个字符及其后续的每个字符后,启用一个字符间隔定时器.
+	 *  当有VMIN个字符可读或两字符间的时间间隔超进VTIME个0.1秒时,Read方法返回
+	**/
 	ms := c.ReadTime.Milliseconds()/100
 	if ms < MIN_TIME {
 		ms = MIN_TIME

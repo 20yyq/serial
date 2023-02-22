@@ -1,3 +1,3 @@
-module github.com/20yyq/goserial
+module github.com/20yyq/serial
 
 go 1.19

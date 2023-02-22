@@ -1,12 +1,12 @@
 // @@
 // @ Author       : Eacher
 // @ Date         : 2023-02-20 14:42:42
-// @ LastEditTime : 2023-02-21 15:56:11
+// @ LastEditTime : 2023-02-22 08:27:33
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : 
 // @ --------------------------------------------------------------------------------<
-// @ FilePath     : /goserial/main.go
+// @ FilePath     : /serial/examples/main.go
 // @@
 package main
 
@@ -16,13 +16,14 @@ import (
     "fmt"
     "os/signal"
 
-	"github.com/20yyq/goserial/serials"
+	"github.com/20yyq/serial"
 )
 
 func main() {
-	// c := serials.Config{Name: "/dev/ttyACM0", Baud: 115200, MinByte: 10, ReadTime: time.Duration(2500000)}
-	c := serials.Config{Baud: 115200, ReadTime: time.Hour}
-	conn, err := serials.New("COM9", c)
+	// c := serial.Config{Baud: 115200, MinByte: 10, ReadTime: time.Duration(2500000)}
+	// conn, err := serial.New("/dev/ttyACM0", c)
+	c := serial.Config{Baud: 115200, ReadTime: time.Hour}
+	conn, err := serial.New("COM9", c)
 	if err != nil {
 		fmt.Println("conn new error:", err)
 		return

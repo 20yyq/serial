@@ -3,14 +3,14 @@
 // @@
 // @ Author       : Eacher
 // @ Date         : 2023-02-21 09:46:27
-// @ LastEditTime : 2023-02-21 15:51:20
+// @ LastEditTime : 2023-02-22 08:13:19
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : win 串行设备
 // @ --------------------------------------------------------------------------------<
-// @ FilePath     : /goserial/serials/serial_windows.go
+// @ FilePath     : /serial/serial_windows.go
 // @@
-package serials
+package serial
 
 import (
 	"fmt"
