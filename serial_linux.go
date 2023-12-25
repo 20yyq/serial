@@ -1,35 +1,33 @@
-//go:build linux
-// +build linux
 // @@
 // @ Author       : Eacher
 // @ Date         : 2022-11-28 09:04:47
-// @ LastEditTime : 2023-02-22 08:51:48
+// @ LastEditTime : 2023-12-25 16:29:29
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : linux 串口
 // @ --------------------------------------------------------------------------------<
-// @ FilePath     : /serial/serial_linux.go
+// @ FilePath     : /20yyq/serial/serial_linux.go
 // @@
 package serial
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"syscall"
 	"unsafe"
 )
 
 const (
-	MIN_TIME 	= 0x01
-	MAX_TIME 	= 0xFF
+	MIN_TIME = 0x01
+	MAX_TIME = 0xFF
 
-	TCFLSH 		= 0x540B
+	TCFLSH = 0x540B
 )
 
 type port struct {
-	c 		Config
-	f     	*os.File
-	t 		*syscall.Termios
+	c Config
+	f *os.File
+	t *syscall.Termios
 }
 
 // 创建一个可用的串口
@@ -52,7 +50,7 @@ func New(name string, c Config) (Serial, error) {
 // 配置端口
 func (p *port) SetConfig(c Config) error {
 	// 初始化控制模式标志
-	p.t.Cflag = 0x00|syscall.CREAD|syscall.CLOCAL
+	p.t.Cflag = 0x00 | syscall.CREAD | syscall.CLOCAL
 
 	// 设置波特率
 	bauds := map[uint32]uint32{
@@ -110,17 +108,17 @@ func (p *port) SetConfig(c Config) error {
 	}
 
 	/**	VTIME和VMIN值,这两个值只用于非标准模式,两者结合共同控制对输入的读取方式,还能控制在一个程序试图与一个终端关联的文件描述符时将发生的情况
-	 *  
+	 *
 	 *  VMIN = 0, VTIME = 0时:Read方法立即返回,如果有待处理的字符,它们就会被返回,如果没有,Read方法调用返回0,且不读取任何字符
-	 *  
+	 *
 	 *  VMIN = 0, VTIME > 0时:有字符处理或经过VTIME个0.1秒后返回
-	 *  
+	 *
 	 *  VMIN > 0, VTIME = 0时:Read方法一直等待,直到有VMIN个字符可以读取,返回值是字符的数量.到达文件尾时返回0
-	 *  
+	 *
 	 *  VMIN > 0, VTIME > 0时:Read方法调用时,它会等待接收一个字符.在接收到第一个字符及其后续的每个字符后,启用一个字符间隔定时器.
 	 *  当有VMIN个字符可读或两字符间的时间间隔超进VTIME个0.1秒时,Read方法返回
 	**/
-	ms := c.ReadTime.Milliseconds()/100
+	ms := c.ReadTime.Milliseconds() / 100
 	if c.ReadTime == 0 {
 		ms = 0
 	} else if ms < MIN_TIME {
@@ -133,17 +131,11 @@ func (p *port) SetConfig(c Config) error {
 }
 
 func (p *port) Read(b []byte) (n int, err error) {
-	if n, err = p.f.Read(b); err != nil {
-		return 0, fmt.Errorf("serial read Error: %s", err.Error())
-	}
-	return n, nil
+	return p.f.Read(b)
 }
 
 func (p *port) Write(b []byte) (n int, err error) {
-	if n, err = p.f.Write(b); err != nil {
-		return 0, fmt.Errorf("serial write Error: %s", err.Error())
-	}
-	return n, nil
+	return p.f.Write(b)
 }
 
 func (p *port) InFlush() error {

@@ -1,12 +1,12 @@
 // @@
 // @ Author       : Eacher
 // @ Date         : 2023-02-20 13:45:45
-// @ LastEditTime : 2023-02-22 08:13:09
+// @ LastEditTime : 2023-12-25 16:29:27
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
-// @ Description  : 
+// @ Description  :
 // @ --------------------------------------------------------------------------------<
-// @ FilePath     : /serial/serial.go
+// @ FilePath     : /20yyq/serial/serial.go
 // @@
 package serial
 
@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	SIZE0    = 0
-	SIZE5    = 5
-	SIZE6    = 6
-	SIZE7    = 7
-	SIZE8    = 8
+	SIZE0 = 0
+	SIZE5 = 5
+	SIZE6 = 6
+	SIZE7 = 7
+	SIZE8 = 8
 
 	STOP0    = 0
 	STOP1    = 1
@@ -47,11 +47,11 @@ type Serial interface {
 }
 
 type Config struct {
-	Baud        uint32
-	Size        byte
-	Parity      byte
-	StopBits    byte
+	Baud     uint32
+	Size     byte
+	Parity   byte
+	StopBits byte
 
-	MinByte 	uint8
-	ReadTime 	time.Duration
+	MinByte  uint8
+	ReadTime time.Duration
 }

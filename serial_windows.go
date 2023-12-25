@@ -1,14 +1,12 @@
-//go:build windows
-// +build windows
 // @@
 // @ Author       : Eacher
 // @ Date         : 2023-02-21 09:46:27
-// @ LastEditTime : 2023-02-22 08:13:19
+// @ LastEditTime : 2023-12-25 16:23:56
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : win 串行设备
 // @ --------------------------------------------------------------------------------<
-// @ FilePath     : /serial/serial_windows.go
+// @ FilePath     : /20yyq/serial/serial_windows.go
 // @@
 package serial
 
@@ -20,8 +18,8 @@ import (
 )
 
 const (
-	MIN_TIME 	= 0x01
-	MAX_TIME 	= 0xFFFFFFFF
+	MIN_TIME = 0x01
+	MAX_TIME = 0xFFFFFFFF
 
 	EV_RXCHAR     = 0x0001
 	PURGE_TXABORT = 0x0001
@@ -39,36 +37,36 @@ var (
 )
 
 type port struct {
-	h  syscall.Handle
-	rl sync.Mutex
-	wl sync.Mutex
+	h   syscall.Handle
+	rl  sync.Mutex
+	wl  sync.Mutex
 	dcb _DCB
 }
 
 type _DCB struct {
-	DCBlength 	uint32
-	BaudRate 	uint32
-	flags 		[4]byte
-	wReserved 	uint16
-	XonLim 		uint16
-	XoffLim 	uint16
-	ByteSize 	byte
-	Parity 		byte
-	StopBits 	byte
-	XonChar 	byte
-	XoffChar 	byte
-	ErrorChar 	byte
-	EofChar 	byte
-	EvtChar 	byte
-	wReserved1 	uint16
+	DCBlength  uint32
+	BaudRate   uint32
+	flags      [4]byte
+	wReserved  uint16
+	XonLim     uint16
+	XoffLim    uint16
+	ByteSize   byte
+	Parity     byte
+	StopBits   byte
+	XonChar    byte
+	XoffChar   byte
+	ErrorChar  byte
+	EofChar    byte
+	EvtChar    byte
+	wReserved1 uint16
 }
 
 type _COMMTIMEOUTS struct {
-	ReadIntervalTimeout 		uint32
-	ReadTotalTimeoutMultiplier 	uint32
-	ReadTotalTimeoutConstant 	uint32
+	ReadIntervalTimeout         uint32
+	ReadTotalTimeoutMultiplier  uint32
+	ReadTotalTimeoutConstant    uint32
 	WriteTotalTimeoutMultiplier uint32
-	WriteTotalTimeoutConstant 	uint32
+	WriteTotalTimeoutConstant   uint32
 }
 
 // 创建一个可用的串口
@@ -76,6 +74,7 @@ func New(name string, c Config) (Serial, error) {
 	var err error
 	onec.Do(func() { err = initK32DLL() })
 	if err != nil {
+		onec = sync.Once{}
 		return nil, fmt.Errorf("k32DLL load Error: %s", err.Error())
 	}
 	if len(name) > 0 && name[0] != '\\' {
