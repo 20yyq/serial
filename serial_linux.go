@@ -1,7 +1,7 @@
 // @@
 // @ Author       : Eacher
 // @ Date         : 2022-11-28 09:04:47
-// @ LastEditTime : 2023-12-25 16:29:29
+// @ LastEditTime : 2024-09-23 11:05:31
 // @ LastEditors  : Eacher
 // @ --------------------------------------------------------------------------------<
 // @ Description  : linux 串口
@@ -67,6 +67,7 @@ func (p *port) SetConfig(c Config) error {
 		return fmt.Errorf("unrecognized baud rate")
 	}
 	p.t.Ispeed, p.t.Ospeed = baud, baud
+	p.t.Cflag |= baud
 
 	// 设置数据位
 	switch c.Size {
